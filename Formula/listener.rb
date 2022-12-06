@@ -53,6 +53,7 @@ class Listener < Formula
   test do
     (testpath/"rust_app").mkpath
     (testpath/"tmp").mkpath
+    puts testpath
     child_pid = fork do
       puts "Child process initiated to run rust_app"
       puts "Child pid: #{Process.pid}, pgid: #{Process.getpgrp}"
