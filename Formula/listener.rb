@@ -66,15 +66,21 @@ class Listener < Formula
     end
     puts "Waiting for rust_app TCP socket listener to be up..."
     sleep 10
-    system "echo sample_text | nc localhost 9090"
-    pgid = Process.getpgid(child_pid)
-    puts "Sending HUP to group #{pgid}..."
-    Process.kill('HUP', -pgid)
-    Process.detach(pgid)
-    # rust_app running on port 9090
-    assert_match "rust_app",
-                 shell_output("lsof -nP -i4TCP:9090 | grep LISTEN")
-    puts "Parent process exiting..."
+    begin
+      system "echo sample_text | nc localhost 9090"
+      assert_match "rust_app",
+                   shell_output("lsof -nP -i4TCP:9090 | grep LISTEN")
+    rescue
+      puts "test1"
+      assert_raises(CustomError) do
+        raise CustomError, 'This is really bad'
+      end
+    ensure
+      pgid = Process.getpgid(child_pid)
+      puts "Sending HUP to group #{pgid}..."
+      Process.kill('HUP', -pgid)
+      Process.detach(pgid)
+      puts "Parent process exiting..."
+    end
   end
-
 end
