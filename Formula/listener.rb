@@ -60,17 +60,18 @@ class Listener < Formula
       Process.setsid
       puts "Child new pgid: #{Process.getpgrp}"
       puts "Initiating rust_app..."
+      ENV.prepend "LISTEN_PORT", "9090"
       system "#{bin}/rust_app"
     end
     puts "Waiting for rust_app TCP socket listener to be up..."
     sleep 10
     system "echo sample_text | nc localhost 9090"
     lines = File.open(var/"rust_app/logs/stdout/rust_app.log").to_a
-    assert_equal sample_text, lines.last
     pgid = Process.getpgid(child_pid)
     puts "Sending HUP to group #{pgid}..."
     Process.kill('HUP', -pgid)
     Process.detach(pgid)
+    assert_equal sample_text, lines.last
     puts "Parent process exiting..."
   end
 
